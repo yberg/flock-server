@@ -1,0 +1,38 @@
+extends layout
+
+block content
+  h1 Hej
+  button#socket Socket test
+  
+  script(src='/socket.io/socket.io.js')
+  script.
+    var _id = '5804a998795236fdc199b605';
+    var socket = io.connect('http://192.168.0.105:3000/', {query: '_id=' + _id});
+    socket.on('newConnection', function(data) {
+      console.log(data);
+    });
+    socket.on('server', function(data) {
+      console.log(data);
+    });
+    socket.on('updatedOne', (data) => {
+      console.log(data);
+    });
+    socket.on('socketError', (error) => {
+      console.log(error);
+    });
+    socket.on('updateRequest', (data) => {
+      console.log('Received updateRequest from ' + data.src);
+      socket.emit('updateSelf', {
+        _id: _id,
+        lat: 59.508594,
+        long: 17.755809,
+        dest: data.src,
+      });
+    });
+    document.getElementById('socket').onclick = function() {
+      socket.emit('any', {clicked: true});
+      socket.emit('requestOne', {
+        src: _id,
+        dest: '5804aa86795236fdc199b606'
+      });
+    };

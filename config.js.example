@@ -1,0 +1,6 @@
+var config = {};
+
+config.clientId =
+  '000000000000000000000000000000000000000000000.apps.googleusercontent.com';
+
+module.exports = config;
