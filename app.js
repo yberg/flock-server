@@ -1,12 +1,13 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var mongodb = require('mongodb');
-var mongoClient = mongodb.MongoClient;
-var ObjectId = mongodb.ObjectId;
+const express = require('express');
+const path = require('path');
+const favicon = require('serve-favicon');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const fs = require('fs');
+const mongodb = require('mongodb');
+const mongoClient = mongodb.MongoClient;
+const ObjectId = mongodb.ObjectId;
 
 var index = require('./routes/index');
 var socket = require('./routes/socket');
@@ -16,8 +17,15 @@ var family = require('./routes/family');
 var auth = require('./routes/auth');
 
 var app = express();
+
+const options = {
+  key: fs.readFileSync('./ssl/server.key'),
+  cert: fs.readFileSync('./ssl/server.crt'),
+  ca: fs.readFileSync('./ssl/ca.crt')
+};
+var httpsServer = require('https').createServer(options, app);
 var server = require('http').Server(app);
-var io = require('socket.io')(server);
+var io = require('socket.io')(httpsServer);
 
 var Users;
 var sockets = {};
@@ -136,4 +144,4 @@ app.use(function(err, req, res, next) {
   });
 });
 
-module.exports = {app: app, server: server};
+module.exports = {app: app, server: server, httpsServer: httpsServer};
