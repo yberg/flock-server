@@ -33,7 +33,7 @@ function validateToken(idToken, callback) {
 }
 
 router.post('/', (req, res, next) => {
-  //console.log(req.body);
+  console.log(req.body);
   var user = {};
   if (req.body.email) {
     Users.findOne({email: req.body.email}, (err, result) => {

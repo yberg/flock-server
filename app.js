@@ -18,14 +18,14 @@ var auth = require('./routes/auth');
 
 var app = express();
 
-const options = {
+/*const options = {
   key: fs.readFileSync('./ssl/server.key'),
   cert: fs.readFileSync('./ssl/server.crt'),
   ca: fs.readFileSync('./ssl/ca.crt')
 };
-var httpsServer = require('https').createServer(options, app);
+var httpsServer = require('https').createServer(options, app);*/
 var server = require('http').Server(app);
-var io = require('socket.io')(httpsServer);
+var io = require('socket.io')(server);
 
 var Users;
 var sockets = {};
@@ -144,4 +144,4 @@ app.use(function(err, req, res, next) {
   });
 });
 
-module.exports = {app: app, server: server, httpsServer: httpsServer};
+module.exports = {app: app, server: server/*, httpsServer: httpsServer*/};
