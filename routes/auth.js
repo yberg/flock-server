@@ -7,6 +7,7 @@ var ObjectId = mongodb.ObjectId;
 var request = require('request');
 
 const CLIENT_ID = require('../config').clientId;
+const CLIENT_ID_URL = CLIENT_ID + '.apps.googleusercontent.com';
 
 var Users;
 mongoClient.connect('mongodb://localhost:27017/flock', (err, db) => {
