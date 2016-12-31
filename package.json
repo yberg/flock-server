@@ -11,6 +11,7 @@
     "debug": "~2.2.0",
     "express": "~4.13.1",
     "fs": "0.0.1-security",
+    "google-auth-library": "^0.10.0",
     "https": "^1.0.0",
     "jade": "~1.11.0",
     "mongodb": "^2.2.10",

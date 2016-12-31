@@ -7,7 +7,10 @@ var ObjectId = mongodb.ObjectId;
 var request = require('request');
 
 const CLIENT_ID = require('../config').clientId;
-const CLIENT_ID_URL = CLIENT_ID + '.apps.googleusercontent.com';
+
+var GoogleAuth = require('google-auth-library');
+var auth = new GoogleAuth;
+var client = new auth.OAuth2(CLIENT_ID, '', '');
 
 var Users;
 mongoClient.connect('mongodb://localhost:27017/flock', (err, db) => {
@@ -52,9 +55,13 @@ router.post('/', (req, res, next) => {
       res.jsonp(result);
     });
   } else if (req.body.gmail) {
-    validateToken(req.body.idToken, (googleRes) => {
-      console.log(googleRes);
-      if (googleRes && googleRes.aud === CLIENT_ID) {
+    client.verifyIdToken(req.body.idToken, CLIENT_ID, function(err, login) {
+      if (err) {
+        console.log(err);
+      } else {
+        var payload = login.getPayload();
+        var userid = payload['sub'];
+        console.log(payload);
         Users.findOne({gmail: req.body.gmail}, (err, result) => {
           if (err) {
             throw err;
@@ -63,19 +70,18 @@ router.post('/', (req, res, next) => {
             result.success = true;
           } else {
             var newGoogleUser = {
-              gmail: req.body.gmail,
-              name: req.body.name,
+              gmail: payload.email,
+              googleId: payload.sub,
+              name: payload.name,
+              firstName: payload.given_name,
+              lastName: payload.family_name,
+              familyId: ObjectId('5804c0fc795236fdc199b614')
             };
             Users.insert(newGoogleUser);
             result = newGoogleUser;
             result.success = true;
           }
           res.jsonp(result);
-        });
-      } else {
-        res.jsonp({
-          success: false,
-          message: 'Failed to authenticate user',
         });
       }
     });

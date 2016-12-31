@@ -46,6 +46,8 @@ router.get('/:_id', (req, res, next) => {
     if (req.params._id) {
       result = result[0];
     }
+    console.log('family result: ');
+    console.log(result);
     res.jsonp(result);
   });
 });
