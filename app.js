@@ -48,7 +48,7 @@ io.on('connection', (socket) => {
     {connection: 'New connection from ' + socket.handshake.address});
   socket.on('requestOne', (data) => {
     // Someone requests update from another user
-    console.log('requested update on ' + data.dest + ' from ' + data.src);
+    console.log('requested update from ' + data.src + ' on ' + data.dest);
     if (sockets[data.dest] !== undefined) {
       // Send the request to that user only
       sockets[data.dest].emit('updateRequest', {src: data.src});

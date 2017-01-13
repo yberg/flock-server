@@ -3,7 +3,7 @@ var router = express.Router();
 var mongodb = require('mongodb');
 var bodyParser = require('body-parser');
 var mongoClient = mongodb.MongoClient;
-var ObjectId = mongodb.ObjectId;
+var ObjectID = mongodb.ObjectID;
 var request = require('request');
 
 const CLIENT_ID = require('../config').clientId;
@@ -19,22 +19,6 @@ mongoClient.connect('mongodb://localhost:27017/flock', (err, db) => {
   }
   Users = db.collection('users');
 });
-
-function validateToken(idToken, callback) {
-  var options = {
-    url: 'https://www.googleapis.com/oauth2/v3/tokeninfo',
-    method: 'POST',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    form: {'id_token': idToken}
-  };
-  request(options, (error, response, body) => {
-    if (!error && response.statusCode == 200) {
-      callback(JSON.parse(body));
-    } else {
-      callback(false);
-    }
-  });
-}
 
 router.post('/', (req, res, next) => {
   console.log(req.body);
@@ -68,14 +52,16 @@ router.post('/', (req, res, next) => {
           }
           if (result) {
             result.success = true;
+            Users.updateOne({gmail: req.body.gmail}, {$set: {imageUrl: payload.picture}});
           } else {
-            var newGoogleUser = {
+            const newGoogleUser = {
               gmail: payload.email,
               googleId: payload.sub,
               name: payload.name,
               firstName: payload.given_name,
               lastName: payload.family_name,
-              familyId: ObjectId('5804c0fc795236fdc199b614')
+              familyId: ObjectID('5804c0fc795236fdc199b614'),
+              imageUrl: payload.picture
             };
             Users.insert(newGoogleUser);
             result = newGoogleUser;

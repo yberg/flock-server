@@ -19,7 +19,7 @@ router.get('/', (req, res, next) => {
   if (req.query.familyId) {
     family = {familyId: ObjectId(req.query.familyId)};
   } else if (req.query.familyId === '') {
-    family = {familyId: 'foo'};
+    family = {familyId: '_'};
   }
   Users.find(family).toArray((err, result) => {
     if (err) {
