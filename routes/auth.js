@@ -52,7 +52,7 @@ router.post('/', (req, res, next) => {
           }
           if (result) {
             result.success = true;
-            Users.updateOne({gmail: req.body.gmail}, {$set: {imageUrl: payload.picture}});
+            Users.updateOne({gmail: req.body.gmail}, {$set: {googleImageUrl: payload.picture}});
           } else {
             const newGoogleUser = {
               gmail: payload.email,
@@ -61,7 +61,7 @@ router.post('/', (req, res, next) => {
               firstName: payload.given_name,
               lastName: payload.family_name,
               familyId: ObjectID('5804c0fc795236fdc199b614'),
-              imageUrl: payload.picture
+              googleImageUrl: payload.picture
             };
             Users.insert(newGoogleUser);
             result = newGoogleUser;

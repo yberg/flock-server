@@ -9,12 +9,13 @@ const mongodb = require('mongodb');
 const mongoClient = mongodb.MongoClient;
 const ObjectId = mongodb.ObjectId;
 
-var index = require('./routes/index');
-var socket = require('./routes/socket');
-var test = require('./routes/test');
-var user = require('./routes/user');
-var family = require('./routes/family');
-var auth = require('./routes/auth');
+const index = require('./routes/index');
+const socket = require('./routes/socket');
+const test = require('./routes/test');
+const user = require('./routes/user');
+const family = require('./routes/family');
+const auth = require('./routes/auth');
+const register = require('./routes/register');
 
 var app = express();
 
@@ -119,6 +120,7 @@ app.use('/test', test);
 app.use('/user', user);
 app.use('/family', family);
 app.use('/auth', auth);
+app.use('/register', register);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
