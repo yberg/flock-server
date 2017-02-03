@@ -3,7 +3,9 @@ var router = express.Router();
 var mongodb = require('mongodb');
 var bodyParser = require('body-parser');
 var mongoClient = mongodb.MongoClient;
-var ObjectID = mongodb.ObjectID;
+var ObjectId = mongodb.ObjectId;
+
+const utils = require('../utils');
 
 var Families;
 var Users;
@@ -15,52 +17,51 @@ mongoClient.connect('mongodb://localhost:27017/flock', (err, db) => {
   Users = db.collection('users');
 });
 
-router.get('/', (req, res, next) => {
-  res.jsonp({
+router.get('/', utils.requireLogin, (req, res, next) => {
+  res.json({
     success: true,
     favorites: []
   });
 });
 
-router.get('/all', (req, res, next) => {
+router.get('/all', utils.requireLogin, (req, res, next) => {
   Families.find().toArray((err, result) => {
     if (err) {
       throw err;
     }
     result.success = true;
-    res.jsonp(result);
+    res.json(result);
   });
 });
 
 /* GET home page. */
-router.get('/:_id', (req, res, next) => {
-  var _id = {};
-  if (req.params._id) {
-    _id = {_id: ObjectID(req.params._id)};
-  }
-  Families.find(_id).toArray((err, result) => {
+router.get('/:id', utils.requireLogin, (req, res, next) => {
+  Families.findOne({ _id: ObjectId(req.params.id) }, (err, result) => {
     if (err) {
       throw err;
     }
-    result.success = true;
-    if (req.params._id) {
-      result = result[0];
+    if (result) {
+      result.success = true;
+      res.json(result);
+    } else {
+      res.json({
+        success: false,
+        error: 'Could\'nt find family'
+      });
     }
-    console.log('family result:', result);
-    res.jsonp(result);
   });
 });
 
-router.post('/:id/join', (req, res, next) => {
+router.post('/:id/join', utils.requireLogin, (req, res, next) => {
   console.log('Join family', req.body);
-  Families.findOne({_id: ObjectID(req.params.id)}, (err, result) => {
+  Families.findOne({ _id: ObjectId(req.params.id) }, (err, result) => {
     if (err) {
       throw err;
     }
     if (result) {
       Users.findOneAndUpdate(
-        {_id: ObjectID(req.body._id)},
-        {$set: {familyId: ObjectID(req.params.id)}},
+        { _id: ObjectId(req.body._id) },
+        { $set: { familyId: ObjectId(req.params.id) } },
         (err, result) => {
         if (err) {
           throw err;
@@ -69,16 +70,16 @@ router.post('/:id/join', (req, res, next) => {
           delete result.value.password;
           result.value.success = true;
           result.value.familyId = req.params.id;
-          res.jsonp(result.value);
+          res.json(result.value);
         } else {
-          res.jsonp({
+          res.json({
             success: false,
             error: 'User not found',
           });
         }
       });
     } else {
-      res.jsonp({
+      res.json({
         success: false,
         error: 'Family not found',
       })
@@ -86,20 +87,20 @@ router.post('/:id/join', (req, res, next) => {
   })
 });
 
-router.post('/:id/addFavorite', (req, res, next) => {
+router.post('/:id/addFavorite', utils.requireLogin, (req, res, next) => {
   console.log(req.body);
   if (req.body) {
     // Look up requesting user
-    Users.findOne({_id: ObjectID(req.body._id)}, {familyId: 1}, (err, result) => {
+    Users.findOne({_id: ObjectId(req.body._id)}, {familyId: 1}, (err, result) => {
       if (err) {
         throw err;
       }
       // Check if the user is a member of the family
       if (result.familyId && result.familyId.toString() === req.params.id) {
         // Push the new favorite to the favorites list
-        Families.updateOne({_id: ObjectID(req.params.id)},
+        Families.updateOne({_id: ObjectId(req.params.id)},
         {$push: {favorites: {
-          _id: ObjectID(),
+          _id: ObjectId(),
           name: req.body.name,
           lat: Number(req.body.lat),
           long: Number(req.body.long),
@@ -108,36 +109,36 @@ router.post('/:id/addFavorite', (req, res, next) => {
           if (err) {
             throw err;
           }
-          Families.findOne({_id: ObjectID(req.params.id)}, {_id: 0, favorites: 1}, (err, result) => {
+          Families.findOne({_id: ObjectId(req.params.id)}, {_id: 0, favorites: 1}, (err, result) => {
             if (err) {
               throw err;
             }
             const favorite = result.favorites[result.favorites.length - 1];
             favorite.success = true;
             favorite.message = 'Added favorite';
-            res.jsonp(favorite);
+            res.json(favorite);
           });
         });
       } else {
-        res.jsonp({
+        res.json({
           success: false,
           error: 'Couldn\'t add favorite #1',
         });
       }
     });
   } else {
-    res.jsonp({
+    res.json({
       success: false,
       error: 'Couldn\'t add favorite #2',
     });
   }
 });
 
-router.post('/:id/deleteFavorite', (req, res, next) => {
+router.post('/:id/deleteFavorite', utils.requireLogin, (req, res, next) => {
   console.log(req.body);
   if (req.body) {
     // Look up requesting user
-    Users.findOne({_id: ObjectID(req.body._id)}, {familyId: 1}, (err, result) => {
+    Users.findOne({_id: ObjectId(req.body._id)}, {familyId: 1}, (err, result) => {
       if (err) {
         throw err;
       }
@@ -145,33 +146,33 @@ router.post('/:id/deleteFavorite', (req, res, next) => {
         // Check if the user is a member of the family
         if (result.familyId && result.familyId.toString() === req.params.id) {
           // Delete the favorite from the favorites list
-          Families.updateOne({_id: ObjectID(req.params.id)},
+          Families.updateOne({_id: ObjectId(req.params.id)},
           {$pull: {favorites: {
-            _id: ObjectID(req.body.favoriteId),
+            _id: ObjectId(req.body.favoriteId),
           }}}, (err, result) => {
             if (err) {
               throw err;
             }
-            res.jsonp({
+            res.json({
               success: true,
               message: 'Deleted favorite'
             });
           });
         } else {
-          res.jsonp({
+          res.json({
             success: false,
             error: 'Couldn\'t delete favorite #1',
           });
         }
       } else {
-        res.jsonp({
+        res.json({
           success: false,
           error: 'Couldn\'t delete favorite #2',
         });
       }
     });
   } else {
-    res.jsonp({
+    res.json({
       success: false,
       error: 'Couldn\'t delete favorite #3',
     });

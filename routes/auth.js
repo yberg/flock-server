@@ -5,8 +5,11 @@ var bodyParser = require('body-parser');
 var mongoClient = mongodb.MongoClient;
 var ObjectID = mongodb.ObjectID;
 var request = require('request');
+var cookieParser = require('cookie-parser');
+var bcrypt = require('bcryptjs');
 
 const CLIENT_ID = require('../config').clientId;
+const utils = require('../utils');
 
 var GoogleAuth = require('google-auth-library');
 var auth = new GoogleAuth;
@@ -24,19 +27,33 @@ router.post('/', (req, res, next) => {
   console.log(req.body);
   var user = {};
   if (req.body.email) {
-    Users.findOne({email: req.body.email}, (err, result) => {
+    Users.findOne({ email: req.body.email }, (err, result) => {
       if (err) {
         throw err;
       }
       if (result) {
-        result.success = true;
+        if (bcrypt.compareSync(req.body.password, result.password)) {
+          delete result.password;
+          const user = Object.assign({}, result);
+          utils.createUserSession(req, res, {
+            _id: user._id,
+            email: user.email,
+          });
+          result.success = true;
+          console.log('sending back', result);
+          res.json(result);
+        } else {
+          res.json({
+            success: false,
+            error: 'Wrong username and/or password',
+          });
+        }
       } else {
-        var result = {
+        res.json({
           success: false,
-          message: 'Couldn\'t find user',
-        };
+          error: 'Wrong username and/or password',
+        });
       }
-      res.jsonp(result);
     });
   } else if (req.body.gmail) {
     client.verifyIdToken(req.body.idToken, CLIENT_ID, function(err, login) {
@@ -51,8 +68,11 @@ router.post('/', (req, res, next) => {
             throw err;
           }
           if (result) {
-            result.success = true;
             Users.updateOne({gmail: req.body.gmail}, {$set: {googleImageUrl: payload.picture}});
+            utils.createUserSession(req, res, {
+              _id: result._id,
+              gmail: result.gmail,
+            });
           } else {
             const newGoogleUser = {
               gmail: payload.email,
@@ -65,14 +85,15 @@ router.post('/', (req, res, next) => {
             };
             Users.insert(newGoogleUser);
             result = newGoogleUser;
-            result.success = true;
+            // TODO: get new user's _id and create session
           }
-          res.jsonp(result);
+          result.success = true;
+          res.json(result);
         });
       }
     });
   } else {
-    res.jsonp({
+    res.json({
       success: false,
       message: 'Couldn\'t find user',
     });

@@ -8,14 +8,9 @@ const fs = require('fs');
 const mongodb = require('mongodb');
 const mongoClient = mongodb.MongoClient;
 const ObjectId = mongodb.ObjectId;
+var session = require('client-sessions');
 
-const index = require('./routes/index');
-const socket = require('./routes/socket');
-const test = require('./routes/test');
-const user = require('./routes/user');
-const family = require('./routes/family');
-const auth = require('./routes/auth');
-const register = require('./routes/register');
+const utils = require('./utils');
 
 var app = express();
 
@@ -46,15 +41,15 @@ io.on('connection', (socket) => {
   console.log('Connected devices: ');
   console.log(Object.keys(sockets));
   io.emit('newConnection',
-    {connection: 'New connection from ' + socket.handshake.address});
+    { connection: 'New connection from ' + socket.handshake.address });
   socket.on('requestOne', (data) => {
     // Someone requests update from another user
     console.log('requested update from ' + data.src + ' on ' + data.dest);
     if (sockets[data.dest] !== undefined) {
       // Send the request to that user only
-      sockets[data.dest].emit('updateRequest', {src: data.src});
+      sockets[data.dest].emit('updateRequest', { src: data.src });
     } else {
-      socket.emit('socketError', {error: 'Device not connected'});
+      socket.emit('socketError', { error: 'Device not connected' });
     }
     // TODO: handle case where user is not connected
     // if (sockets[data.dest] === null)
@@ -62,7 +57,7 @@ io.on('connection', (socket) => {
     // One user updated it's location
     if (data._id && data.lat && data.long) {
       // Update database
-      Users.updateOne({_id: ObjectId(data._id)},
+      Users.updateOne({ _id: ObjectId(data._id) },
         {$set: {
           lat: data.lat,
           long: data.long,
@@ -72,7 +67,7 @@ io.on('connection', (socket) => {
           //console.log('updateSelf: ');
           //console.log(data);
           // Send update to the requesting user (if there is one)
-          Users.findOne({_id: ObjectId(data._id)}, (err, result) => {
+          Users.findOne({ _id: ObjectId(data._id) }, (err, result) => {
             if (err) { throw err; }
             if (result) {
               if (data.dest) {
@@ -101,26 +96,34 @@ app.use(function(req, res, next) {
   res.io = io;
 
   // Access-Control-Allow-Origin
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-  res.header('Access-Control-Allow-Methods', 'POST');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', true);
+  // res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  // res.header('Access-Control-Allow-Methods', 'POST');
+  // res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // res.header('Access-Control-Allow-Credentials', true);
 
   next();
 });
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session({
+  cookieName: 'session',
+  secret: 'LupuXg9oZFUgoreW0Vg22uwEphPvc37jk+w6W0HN75A=',
+  duration: 30 * 60 * 1000,
+  activeDuration: 5 * 60 * 1000,
+  httpOnly: true
+}));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
-app.use('/socket', socket);
-app.use('/test', test);
-app.use('/user', user);
-app.use('/family', family);
-app.use('/auth', auth);
-app.use('/register', register);
+app.use('/api/', require('./routes/index'));
+app.use('/api/socket', require('./routes/socket'));
+app.use('/api/test', require('./routes/test'));
+app.use('/api/user', require('./routes/user'));
+app.use('/api/family', require('./routes/family'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/register', require('./routes/register'));
+app.use('/api/session', require('./routes/session'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -153,4 +156,4 @@ app.use(function(err, req, res, next) {
   });
 });
 
-module.exports = {app: app, server: server/*, httpsServer: httpsServer*/};
+module.exports = { app: app, server: server/*, httpsServer: httpsServer*/ };

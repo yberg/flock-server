@@ -7,7 +7,18 @@ var ObjectId = mongodb.ObjectId;
 
 /* GET home page. */
 router.get('/', (req, res, next) => {
-  res.jsonp({version: '0.0.1'});
+  if (req.session && req.session.user) {
+    res.json({version: '0.0.1'});
+  } else {
+    res.render('index.jade', { title: 'Flock' });
+  }
 });
+
+router.get('/logout', (req, res, next) => {
+  if (req.session) {
+    req.session.reset();
+  }
+  res.redirect('/api');
+})
 
 module.exports = router;

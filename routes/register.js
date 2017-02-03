@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var mongoClient = mongodb.MongoClient;
 var ObjectID = mongodb.ObjectID;
 var request = require('request');
+var bcrypt = require('bcryptjs');
 
 var Users;
 mongoClient.connect('mongodb://localhost:27017/flock', (err, db) => {
@@ -31,7 +32,7 @@ router.post('/', (req, res, next) => {
         name: req.body.firstName + ' ' + req.body.lastName,
         firstName: req.body.firstName,
         lastName: req.body.lastName,
-        password: req.body.password,
+        password: bcrypt.hashSync(req.body.password, 10),
       };
       Users.insertOne(user, (err, result) => {
         if (err) {
