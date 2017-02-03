@@ -6,18 +6,11 @@ const bcrypt = require('bcryptjs');
 const mongoClient = mongodb.MongoClient;
 const ObjectId = mongodb.ObjectId;
 
-const utils = require('../utils');
-
-var Users;
-mongoClient.connect('mongodb://localhost:27017/flock', (err, db) => {
-  if (err) {
-    throw err;
-  }
-  Users = db.collection('users');
-});
+const utils = require('./utils');
 
 /* GET home page. */
 router.get('/', utils.requireLogin, (req, res, next) => {
+  const { Users } = res;
   var family = {};
   if (req.query.familyId) {
     family = { familyId: ObjectId(req.query.familyId) };
@@ -42,6 +35,7 @@ router.get('/', utils.requireLogin, (req, res, next) => {
 });
 
 router.get('/:id', utils.requireLogin, (req, res, next) => {
+  const { Users } = res;
   Users.findOne({ _id: ObjectId(req.params.id) }, (err, result) => {
     if (err) {
       throw err;
@@ -59,6 +53,7 @@ router.get('/:id', utils.requireLogin, (req, res, next) => {
 });
 
 router.post('/:id/edit', (req, res, next) => {
+  const { Users } = res;
   Users.findOne({ _id: ObjectId(req.params.id) }, (err, result) => {
     if (err) {
       throw err;

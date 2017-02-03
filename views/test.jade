@@ -2,11 +2,12 @@ extends layout
 
 block content
   h1 Hej
-  button#socket Socket test
-  
+  button#requestOne requestOne
+  button#updateSelf updateSelf
+
   script(src='/socket.io/socket.io.js')
   script.
-    var _id = '5804a998795236fdc199b605';
+    var _id = '5804aa86795236fdc199b606';
     var socket = io.connect('http://localhost:3001/', {query: '_id=' + _id});
     socket.on('newConnection', function(data) {
       console.log(data);
@@ -15,10 +16,10 @@ block content
       console.log(data);
     });
     socket.on('updatedOne', (data) => {
-      console.log(data);
+      console.log('Updated one:', data);
     });
     socket.on('socketError', (error) => {
-      console.log(error);
+      console.log('Error:', error);
     });
     socket.on('updateRequest', (data) => {
       console.log('Received updateRequest from ' + data.src);
@@ -29,10 +30,18 @@ block content
         dest: data.src,
       });
     });
-    document.getElementById('socket').onclick = function() {
+    document.getElementById('requestOne').onclick = function() {
       socket.emit('any', {clicked: true});
       socket.emit('requestOne', {
         src: _id,
-        dest: '5804aa86795236fdc199b606'
+        dest: '58713ea6b7486c1e785db25e'
+      });
+    };
+    document.getElementById('updateSelf').onclick = function() {
+      socket.emit('any', {clicked: true});
+      socket.emit('updateSelf', {
+        _id,
+        lat: 59.5068511,
+        long: 17.7569173,
       });
     };

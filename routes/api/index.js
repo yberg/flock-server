@@ -5,6 +5,14 @@ var bodyParser = require('body-parser');
 var mongoClient = mongodb.MongoClient;
 var ObjectId = mongodb.ObjectId;
 
+router.use('/socket', require('./socket'));
+router.use('/test', require('./test'));
+router.use('/user', require('./user'));
+router.use('/family', require('./family'));
+router.use('/auth', require('./auth'));
+router.use('/register', require('./register'));
+router.use('/session', require('./session'));
+
 /* GET home page. */
 router.get('/', (req, res, next) => {
   if (req.session && req.session.user) {

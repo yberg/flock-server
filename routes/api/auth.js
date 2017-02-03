@@ -8,23 +8,16 @@ var request = require('request');
 var cookieParser = require('cookie-parser');
 var bcrypt = require('bcryptjs');
 
-const CLIENT_ID = require('../config').clientId;
-const utils = require('../utils');
+const CLIENT_ID = require('../../config').clientId;
+const utils = require('./utils');
 
 var GoogleAuth = require('google-auth-library');
 var auth = new GoogleAuth;
 var client = new auth.OAuth2(CLIENT_ID, '', '');
 
-var Users;
-mongoClient.connect('mongodb://localhost:27017/flock', (err, db) => {
-  if (err) {
-    throw err;
-  }
-  Users = db.collection('users');
-});
-
 router.post('/', (req, res, next) => {
   console.log(req.body);
+  const { Users } = res;
   var user = {};
   if (req.body.email) {
     Users.findOne({ email: req.body.email }, (err, result) => {

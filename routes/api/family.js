@@ -5,17 +5,7 @@ var bodyParser = require('body-parser');
 var mongoClient = mongodb.MongoClient;
 var ObjectId = mongodb.ObjectId;
 
-const utils = require('../utils');
-
-var Families;
-var Users;
-mongoClient.connect('mongodb://localhost:27017/flock', (err, db) => {
-  if (err) {
-    throw err;
-  }
-  Families = db.collection('families');
-  Users = db.collection('users');
-});
+const utils = require('./utils');
 
 router.get('/', utils.requireLogin, (req, res, next) => {
   res.json({
@@ -25,6 +15,7 @@ router.get('/', utils.requireLogin, (req, res, next) => {
 });
 
 router.get('/all', utils.requireLogin, (req, res, next) => {
+  const { Families } = res;
   Families.find().toArray((err, result) => {
     if (err) {
       throw err;
@@ -36,6 +27,7 @@ router.get('/all', utils.requireLogin, (req, res, next) => {
 
 /* GET home page. */
 router.get('/:id', utils.requireLogin, (req, res, next) => {
+  const { Families } = res;
   Families.findOne({ _id: ObjectId(req.params.id) }, (err, result) => {
     if (err) {
       throw err;
@@ -54,6 +46,7 @@ router.get('/:id', utils.requireLogin, (req, res, next) => {
 
 router.post('/:id/join', utils.requireLogin, (req, res, next) => {
   console.log('Join family', req.body);
+  const { Users, Families } = res;
   Families.findOne({ _id: ObjectId(req.params.id) }, (err, result) => {
     if (err) {
       throw err;
@@ -89,6 +82,7 @@ router.post('/:id/join', utils.requireLogin, (req, res, next) => {
 
 router.post('/:id/addFavorite', utils.requireLogin, (req, res, next) => {
   console.log(req.body);
+  const { Users, Families } = res;
   if (req.body) {
     // Look up requesting user
     Users.findOne({_id: ObjectId(req.body._id)}, {familyId: 1}, (err, result) => {
@@ -136,6 +130,7 @@ router.post('/:id/addFavorite', utils.requireLogin, (req, res, next) => {
 
 router.post('/:id/deleteFavorite', utils.requireLogin, (req, res, next) => {
   console.log(req.body);
+  const { Users, Families } = res;
   if (req.body) {
     // Look up requesting user
     Users.findOne({_id: ObjectId(req.body._id)}, {familyId: 1}, (err, result) => {

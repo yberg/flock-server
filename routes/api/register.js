@@ -7,16 +7,9 @@ var ObjectID = mongodb.ObjectID;
 var request = require('request');
 var bcrypt = require('bcryptjs');
 
-var Users;
-mongoClient.connect('mongodb://localhost:27017/flock', (err, db) => {
-  if (err) {
-    throw err;
-  }
-  Users = db.collection('users');
-});
-
 router.post('/', (req, res, next) => {
   console.log('Register', req.body);
+  const { Users } = res;
   Users.findOne({email: req.body.email}, (err, result) => {
     if (err) {
       throw err;

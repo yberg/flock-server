@@ -1,5 +1,5 @@
 module.exports.createUserSession = function(req, res, user) {
-  console.log('CREATING USER SESSION FOR', user.email);
+  console.log('CREATING USER SESSION FOR', user.email || user.gmail);
   req.session.user = user;
 };
 

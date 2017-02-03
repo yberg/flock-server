@@ -46,3 +46,4 @@ ssl/
 # Production files
 public/*
 !public/stylesheets/
+!public/favicon.ico
