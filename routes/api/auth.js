@@ -3,7 +3,7 @@ var router = express.Router();
 var mongodb = require('mongodb');
 var bodyParser = require('body-parser');
 var mongoClient = mongodb.MongoClient;
-var ObjectID = mongodb.ObjectID;
+var ObjectId = mongodb.ObjectId;
 var request = require('request');
 var cookieParser = require('cookie-parser');
 var bcrypt = require('bcryptjs');
@@ -56,7 +56,7 @@ router.post('/', (req, res, next) => {
         var payload = login.getPayload();
         var userid = payload['sub'];
         console.log(payload);
-        Users.findOne({gmail: req.body.gmail}, (err, result) => {
+        Users.findOne({ gmail: req.body.gmail }, (err, result) => {
           if (err) {
             throw err;
           }
@@ -73,7 +73,7 @@ router.post('/', (req, res, next) => {
               name: payload.name,
               firstName: payload.given_name,
               lastName: payload.family_name,
-              familyId: ObjectID('5804c0fc795236fdc199b614'),
+              familyId: ObjectId('5804c0fc795236fdc199b614'),
               googleImageUrl: payload.picture
             };
             Users.insert(newGoogleUser);
@@ -86,10 +86,29 @@ router.post('/', (req, res, next) => {
       }
     });
   } else {
-    res.json({
-      success: false,
-      message: 'Couldn\'t find user',
-    });
+    // Sign in with an existing session
+    if (req.session && req.session.user && (req.body._id === req.session.user._id)) {
+      Users.findOne({ _id: ObjectId(req.session.user._id) }, (err, result) => {
+        if (err) {
+          throw err;
+        }
+        if (result) {
+          delete result.password;
+          const user = Object.assign({}, result);
+          utils.createUserSession(req, res, {
+            _id: user._id,
+            email: user.email,
+          });
+          result.success = true;
+          res.json(result);
+        }
+      });
+    } else {
+      res.json({
+        success: false,
+        message: 'Couldn\'t find user',
+      });
+    }
   }
 });
 

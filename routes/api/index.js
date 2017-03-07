@@ -16,7 +16,7 @@ router.use('/session', require('./session'));
 /* GET home page. */
 router.get('/', (req, res, next) => {
   if (req.session && req.session.user) {
-    res.json({version: '0.0.1'});
+    res.render('welcome.jade');
   } else {
     res.render('index.jade', { title: 'Flock' });
   }

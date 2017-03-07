@@ -56,13 +56,21 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(session({
   cookieName: 'session',
   secret: 'LupuXg9oZFUgoreW0Vg22uwEphPvc37jk+w6W0HN75A=',
-  duration: 30 * 60 * 1000,
-  activeDuration: 5 * 60 * 1000,
+  duration: 24 * 60 * 60 * 1000,
+  activeDuration: 10 * 60 * 1000,
   httpOnly: true
 }));
 
 app.get(['/', '/join', '/join/:id'], (req, res) => {
-  res.sendFile(path.resolve(__dirname, 'public/index.html'));
+  var options = {};
+  // if (req.session && req.session.user) {
+  //   options = {
+  //     headers: {
+  //       _id: req.session.user._id
+  //     }
+  //   };
+  // }
+  res.sendFile(path.resolve(__dirname, 'public/index.html'), options);
 });
 app.use('/api/', require('./routes/api/index'));
 app.use(express.static(path.join(__dirname, 'public')));

@@ -25,7 +25,6 @@ router.get('/all', utils.requireLogin, (req, res, next) => {
   });
 });
 
-/* GET home page. */
 router.get('/:id', utils.requireLogin, (req, res, next) => {
   const { Families } = res;
   Families.findOne({ _id: ObjectId(req.params.id) }, (err, result) => {
@@ -42,6 +41,71 @@ router.get('/:id', utils.requireLogin, (req, res, next) => {
       });
     }
   });
+});
+
+router.get('/:id/chat', utils.requireLogin, (req, res, next) => {
+  const { Families } = res;
+  Families.findOne({ _id: ObjectId(req.params.id) }, { chat: 1 }, (err, result) => {
+    if (err) {
+      throw err;
+    }
+    if (result) {
+      result.success = true;
+      res.json(result);
+    } else {
+      res.json({
+        success: false,
+        error: 'Could\'nt find family'
+      });
+    }
+  });
+});
+
+router.post('/:id/chat/send', /*utils.requireLogin,*/ (req, res, next) => {
+  const { Users, Families } = res;
+  Users.findOne({ _id: ObjectId(req.body._id) }, (err, result) => {
+    if (err) {
+      throw err;
+    }
+    if (result) {
+      if (result.familyId.toString() === req.params.id) {
+        const message = {
+          _id: ObjectId(),
+          userId: req.body._id,
+          text: req.body.text,
+          timestamp: new Date()
+        };
+        Families.updateOne(
+          { _id: ObjectId(req.params.id) },
+          { $push: { chat: message } },
+          (err, result) => {
+          if (err) {
+            throw err;
+          }
+          if (result) {
+            message.success = true;
+            res.json(message);
+          } else {
+            res.json({
+              success: false,
+              error: 'Couldn\'t send message',
+            });
+          }
+        });
+      } else {
+        res.json({
+          success: false,
+          error: 'You don\'t have permission to do that'
+        });
+      }
+    } else {
+      res.json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+  })
+
 });
 
 router.post('/:id/join', utils.requireLogin, (req, res, next) => {
